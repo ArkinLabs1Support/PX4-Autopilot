@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# PX4 FMUv6X specific board MAVLink startup script.
+#------------------------------------------------------------------------------
+
+
+mavlink start -d /dev/ttyS4 -b 57600 -p -x -z

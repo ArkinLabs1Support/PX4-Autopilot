@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+# Arkin Aeromind6X specific board sensors init
+# Works on all hardware revisions: each driver only starts if its chip answers.
+#------------------------------------------------------------------------------
+
+# Analog power module on PC2 (voltage) / PC3 (current)
+if param compare -s ADC_ADS1115_EN 1
+then
+	ads1115 start -X
+	board_adc start -n
+else
+	board_adc start
+fi
+
+# Optional INA228 digital power module (set SENS_EN_INA228 1 to use it)
+if param compare SENS_EN_INA228 1
+then
+	ina228 -X -b 1 -a 64 -t 1 -k start
+fi
+
+# IMUs - earlier boards have ICM45686, v2.1 boards have ICM40609D on the same CS pins.
+# Both drivers are started, the one that does not match WHOAMI exits.
+icm45686 -s -b 3 -R 0 start
+icm40609d -s -b 3 -R 0 start
+
+icm45686 -s -b 2 -R 0 start
+icm40609d -s -b 2 -R 0 start
+
+icm45686 -s -b 1 -R 8 start
+icm40609d -s -b 1 -R 8 start
+
+# Internal compass
+rm3100 -I -b 4 start
+
+# External compass on GPS1/I2C1: standard Holybro Pixhawk 4 or CUAV V5 GPS/compass puck
+ist8310 -X -b 1 -R 10 start
+
+# Barometers - internal bus: 0x63 on earlier boards, 0x64 on v2.1
+if param compare SENS_INT_BARO_EN 1
+then
+	icp201xx -I -b 4 -a 0x63 start
+	icp201xx -I -b 4 -a 0x64 start
+	icp201xx -X -b 2 -a 0x63 start
+fi
